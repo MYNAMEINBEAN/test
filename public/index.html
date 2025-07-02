@@ -11,17 +11,21 @@
         <img src="uv.png" alt="Ultraviolet Logo" class="logo">
         <h1>Welcome to Your Custom Ultraviolet Proxy</h1>
         <p>Customize this page to fit your style!</p>
-        <p>Example proxied link: <a href="https://bean.com" class="proxy-link">https://bean.com</a></p>
+        <p>Example proxied link: <a id="example-link" href="#">https://bean.com</a></p>
         <form id="uv-form" autocomplete="off">
             <input type="text" id="uv-address" placeholder="Enter a URL (e.g. https://example.com)" required style="width:70%;padding:0.5rem;border-radius:8px;border:none;">
             <button type="submit" style="padding:0.5rem 1.5rem;border-radius:8px;border:none;background:#2a5298;color:#fff;font-weight:bold;">Go</button>
         </form>
         <p id="uv-error" style="color:#ffb3b3;"></p>
     </div>
-    <script src="/uv/uv.bundle.js"></script>
-    <script src="/uv/uv.config.js"></script>
     <script>
-    // Ultraviolet proxy form handler
+    // Ultraviolet public instance base
+    const UV_BASE = 'https://uv.deno.dev/service/';
+    // Simple encode function (Base64-URL)
+    function encodeUrl(url) {
+        return btoa(url).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+    }
+    // Form handler
     const form = document.getElementById('uv-form');
     const input = document.getElementById('uv-address');
     const error = document.getElementById('uv-error');
@@ -32,29 +36,11 @@
         if (!url.startsWith('http://') && !url.startsWith('https://')) {
             url = 'http://' + url;
         }
-        try {
-            window.location.href = __uv$config.prefix + __uv$config.encodeUrl(url);
-        } catch (err) {
-            error.textContent = 'Invalid URL or Ultraviolet not loaded.';
-        }
+        window.location.href = UV_BASE + encodeUrl(url);
     });
-
-    // Rewrite all links to go through the proxy
-    function rewriteLinks() {
-        if (typeof __uv$config === 'undefined' || typeof __uv$config.encodeUrl !== 'function') return;
-        document.querySelectorAll('a').forEach(link => {
-            const href = link.getAttribute('href');
-            if (!href) return;
-            // Only rewrite http/https links that are not already proxied
-            if ((href.startsWith('http://') || href.startsWith('https://')) && !href.startsWith(__uv$config.prefix)) {
-                link.setAttribute('href', __uv$config.prefix + __uv$config.encodeUrl(href));
-            }
-        });
-    }
-    // Wait for Ultraviolet to load, then rewrite links
-    window.addEventListener('uvReady', rewriteLinks);
-    // Fallback: try after DOMContentLoaded if uvReady is not dispatched
-    document.addEventListener('DOMContentLoaded', () => setTimeout(rewriteLinks, 500));
+    // Example link
+    const example = document.getElementById('example-link');
+    example.href = UV_BASE + encodeUrl('https://bean.com');
     </script>
 </body>
 </html>
